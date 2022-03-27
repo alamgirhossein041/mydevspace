@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+      webserver:
+        build: ./web
+        image: master-image
+        ports:
+          - 80:5000
+        command: bash -c "cd server && gunicorn --workers 4 --bind 0.0.0.0:5000 --timeout 120 app:app"
+        stdin_open: true
+        tty: true
+        depends_on:
+          - worker
+        volumes:
+            - static-content:/app/server/static
+            - misc-files:/app/server/misc_files
+
+      worker:
+        image: master-image
+        depends_on:
+          - redis
+        command: bash -c "cd server && rq worker --name worker --url redis://redis:6379/0"
+        volumes:
+            - static-content:/app/server/static
+
+      dashboard:
+        image: master-image
+        ports:
+          - 5555:5555
+        depends_on:
+          - redis
+        command: rq-dashboard --port 5555 --redis-url redis://redis:6379/0
+
+      redis:
+        image: redis
+        
+      utils:
+        build: ./utils
+        image: utils-image
+        depends_on:
+          - webserver
+        volumes:
+            - misc-files:/app/misc_files
+        
+volumes:
+      static-content:
+      misc-files:

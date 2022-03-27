@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block content %}
+
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <small class="text-muted">15. dubna 2020</small>
+            </div>
+            <h2><a class="article-title" href="/realty_maps_prodeje">Mapa vývoje cen bytů v ČR</a></h2>
+            <p class="article-content">
+			Mapa ukazuje ceny bytů po okresech v České republice. Data jsou ze serveru sreality.cz, a jsou stahovány cca dvakrát za měsíc.
+			Ke stahování dat používám neveřejný skript v Pythonu, který využívá selenium a chromedriver. 
+			Stažení jednoho inzerátu trvá průměrně 1,5 vteřiny, a následně se ukládá do sqlite databáze.
+			Pokud by měl o skript někdo zájem, může mě kontaktovat emailem.
+			Protože na sreality.cz je standardně umístění bytů reprezentováno adresou ulice, kde se daný byt nachází, tak největší výzvou bylo vyřešit přeložení
+			těchto adres na zeměpisnou délku a šířku. Tomuto procesu se říká geocoding, a provádí se pomocí tzv. Geocoderu.
+			Protože v databázi mám desítky tisíc bytů, nebylo možné použít kvůli api limitům služby zdarma (např. od Google).
+			Tento problém jsem vyřešil lokální instalací vyhledávacího enginu Nominatim. Vzhledem ke složitosti instalace a množství prerekvizit tohoto enginu
+			jsem přistoupil k instalaci přes Docker. Oficiální Dockerfile mi na Windows nešel vybuildit, a proto jsem musel použít <a href="http://mydevspace.cz/static/misc_files/nominatim-docker.zip"> upravenou starši verzi 2.5.</a>
+			Po získání lat/long hodnot pro všechny adresy  se následně přes knihovnu GeoPandas počítá přes geospatial join se shapefilem okresů ČR z ČÚZK průniky s okresy.
+			V datovém souboru, z kterého se počítá mapa nejsou obsaženy byty, které mají cenu přes 20 milionů Kč. Je jich na celou republiku několik stovek, avšak vychylují hodnoty tak, že výrazně zkreslují mapu.
+			Většinou se jedná o byty v rekreačních lokalitách, nebo o atypické byty.
+			K vykreslení kartogramu je použita knihovna Folium.<br>
+			<a href="https://github.com/SgtMarmite/Maps_by_country"> GitHub link</a>
+			</p>
+          </div>
+        </article>
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <small class="text-muted">19. dubna 2020</small>
+            </div>
+            <h2><a class="article-title" href="/realty_simulator">Výpočet cen bytů v ČR</a></h2>
+			<p class="article-content">
+			Data pro model jsou stejná jako v nástroji mapa vývoje cen bytů. Výpočet provádí XGBoost model s přesností cca 90%. Jsou zde opět omezené extrémní hodnoty.
+			Model je přepočítáván každý měsíc, kdy se počítá se všemy získanými inzeráty za poslední rok, kde větší váhu mají novější inzeráty.
+			</p>
+          </div>
+        </article>
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <small class="text-muted">12. listopadu 2021</small>
+            </div>
+            <h2><a class="article-title" href="/binance_api_tool">Binance API tool</a></h2>
+            <p class="article-content">
+            Tento nástroj slouží ke stahování dat k libovolnému páru, který je listovaný na burze Binance. Stáhnout soubor je možné do CSV nebo XLS.<br>
+            </p>
+          </div>
+        </article>
+{% endblock content %}

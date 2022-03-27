@@ -1,0 +1,66 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="content-section">
+	<h1>Mapa cen bytů dle okresu</h1>
+	<br>
+	 <!-- Main Input For Receiving Query to our ML -->
+	<form id="myForm" name="myForm" action="{{ url_for('display_map') }}" method="post" class="form_class" onsubmit="saveData()">
+	<div class="form-group">
+		Rok
+		<select name="rok">
+			<option value="2020">2020</option>
+			<option value="2021">2021</option>
+			<option value="2022">2022</option>
+		</select>
+		Měsíc
+		<select name="mesic">
+			<option value="1">Leden</option>
+			<option value="2">Únor</option>
+			<option value="3">Březen</option>
+			<option value="4">Duben</option>
+			<option value="5">Květen</option>
+			<option value="6">Červen</option>
+			<option value="7">Červenec</option>
+			<option value="8">Srpen</option>
+			<option value="9">Září</option>
+			<option value="10">Říjen</option>
+			<option value="11">Listopad</option>
+			<option value="12">Prosinec</option>
+		</select>
+		<input type="hidden" name="typ" value="prodeje" />
+	</div>
+	<div class="form-group">
+		<div class="wrapper">
+			<button type="submit" class="btn btn-primary zobrazovac" >Zobraz mapu</button> <button type="button" class="btn btn-secondary prepinac" onclick="window.location.href='{{ url_for( 'realty_maps_pronajmy') }}';">Zobrazit data pro nájmy</button>
+			<br>
+		</div>
+	</div>
+	</form>
+		<div class="embed-responsive embed-responsive-1by1">
+			<iframe src="{{ url_for('static', filename=render) }}" ></iframe>
+		</div>
+	</div>
+	
+	
+	<script>
+	//MAPA
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('mesic', document.getElementsByName("mesic")[0].value);
+		localStorage.setItem('rok', document.getElementsByName("rok")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal_mesic = localStorage.getItem('mesic');
+		var inputVal_rok = localStorage.getItem('rok');
+		document.getElementsByName("mesic")[0].value = inputVal_mesic;
+		document.getElementsByName("rok")[0].value = inputVal_rok;
+	}
+
+	
+	</script>
+{% endblock content %}

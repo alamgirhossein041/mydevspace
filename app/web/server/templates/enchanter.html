@@ -1,0 +1,179 @@
+{% extends 'layout.html' %}
+{% block content %}
+	<body>
+
+ <div class="content-section">
+	<h1>Lineage 2 Aden Enchant simulator</h1>
+	<br>
+	<!-- Main Input For Receiving Query to our ML -->
+	<form id="myForm" name="myForm" action="{{ url_for('enchanter_page')}}" method="post" class="form_class" onsubmit="saveData()">
+	<div class="form-group">
+	This tool lets you simulate enchanting based on the amount of enchanted items.
+	It enchants all items on by one using probabilities from <a style="font-weight:bold" href="https://forum.l2essence.online/index.php?/topic/67-enchant-synthesis-chances/">this link</a>
+	Generated percentage values are calculated based on 5000 simulations.
+	<br>
+	Value of 100 % means that in all 5000 simulations the item has been successfully enchated to certain level with the amount of items you've provided.
+	</div>
+	<div class="form-group">
+		<b>Select an item you want to enchant:</b>
+		<select name="item" class="form-control" required="required"/>
+			<option value="Agathion">Agathion</option>
+			<option value="VenirTalisman">VenirTalisman</option>
+			<option value="Brooch">Brooch</option>
+			<option value="Stones">Stones</option>
+			<option value="CircletHero">CircletHero</option>
+			<option value="Dolls">Dolls</option>
+			<option value="Cloak">Cloak</option>
+			<option value="EinhasadPendant">EinhasadPendant</option>
+			<option value="DragonBelt">DragonBelt</option>
+			<option value="EpicJewelery">EpicJewelery</option>
+			<option value="AdenTalisman">AdenTalisman</option>
+			<option value="EvaTalisman">EvaTalisman</option>
+			<option value="AuthorityTalisman">AuthorityTalisman</option>
+			<option value="SpeedTalisman">SpeedTalisman</option>
+			<option value="BaiumTalisman">BaiumTalisman</option>
+			<option value="AdenCrystal">AdenCrystal</option>
+			<option value="HardinCrystal">HardinCrystal</option>
+			<option value="EvolutionRune">EvolutionRune</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<b>How many items to enchant do you have?</b><br>
+		*Keep in Mind that high number of items takes more time to calculate.<br>
+		<input type="number" name="nr_enchants" id="nr_enchants" min="1" max=100 step="1" required="required" value="10"/> <!-- onchange="myForm.submit()" -->
+	</div>
+	<div class="form-group">
+		<button id="tlacitko" type="submit" class="btn btn-primary" >Run experiment</button>
+	</div>
+	</form>
+	<hr style="height:2px;border-width:0;color:gray;background-color:gray">
+	
+	
+
+	{% if ench_results %}
+		<div class="form-group">
+			<p><strong>
+			Following table describes your theoretical chances based on the amount of items you are trying to enchant. 			
+				<table>
+					<thead>
+
+					  <tr>
+						{% for col in column_names %}
+						<th>
+						  {{col}}
+						</th>
+						{% endfor %}
+					  </tr>
+					  
+					</thead>
+					<tbody>
+					  {% for row in row_data %}
+					  <tr>
+						{% for col, row_ in zip(column_names, row) %}
+						<td>{{row_}}</td>
+						{% endfor %}
+					  </tr>
+					  {% endfor %}
+					</tbody>
+				  </table>
+			</strong></p>
+		<div class="canvas" style="min-height: 512px">
+			<p><strong>
+			One sample run:
+			</strong></p>
+			<canvas id="myChart"></canvas>
+		</div>
+		</div>
+	{% endif %}
+	
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+	<script type="text/javascript">
+	
+	function setTickers() {
+	if (window.innerWidth < 1920)
+
+		return 24;
+	else
+		return 48;
+	}
+	
+	var numTickers = setTickers();
+	console.log(numTickers);
+	
+	var ctx = document.getElementById("myChart").getContext('2d');
+	var myChart = new Chart(ctx, {
+	  type: 'bar',
+	  data: {
+		labels: {{labels}},
+		datasets: [{
+		  label: 'Enchanted',
+		  data: {{ench_results}},
+		  backgroundColor: 'rgba(237, 41, 57, 1)',
+		}]
+	  },
+	  options: {
+		events: true,
+		tooltips: {
+			enabled: true
+		},
+		scales: {
+		  xAxes: [{
+			display: true,
+		  }, {
+			display: false
+		  }],
+		  yAxes: [{
+			ticks: {
+			  beginAtZero: true
+			}
+		  }]
+		},
+		animation: {
+			duration: 1,
+			onComplete: function () {
+				var chartInstance = this.chart,
+					ctx = chartInstance.ctx;
+				ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'bottom';
+
+				this.data.datasets.forEach(function (dataset, i) {
+					var meta = chartInstance.controller.getDatasetMeta(i);
+					meta.data.forEach(function (bar, index) {
+						var data = dataset.data[index];                            
+						ctx.fillText(data, bar._model.x, bar._model.y - 5);
+					});
+				});
+			}
+		}
+	}
+	});
+	</script>
+
+ </div>
+
+	<script type="text/javascript">
+	
+	
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('item', document.getElementsByName("item")[0].value);
+		localStorage.setItem('nr_enchants', document.getElementsByName("nr_enchants")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal = localStorage.getItem('item');
+		document.getElementsByName("item")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('nr_enchants');
+		document.getElementsByName("nr_enchants")[0].value = inputVal;
+	}
+
+	</script>
+
+{% endblock content %}

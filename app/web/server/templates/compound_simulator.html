@@ -1,0 +1,184 @@
+{% extends 'layout.html' %}
+{% block content %}
+	<body>
+
+ <div class="content-section">
+	<h1>Simulátor složeného úročení</h1>
+	<br>
+
+	<!-- Main Input For Receiving Query to our ML -->
+	<form id="myForm" name="myForm" action="{{ url_for('compound_simulator')}}" method="post" class="form_class" onsubmit="saveData()">
+	<div class="form-group">
+		<label>První vklad (Počítá se s ním jako v nultém měsíci):</label>
+		<input type="number" required name="prvni_vklad" id="prvni_vklad" min="0" value="0" value="20000" > <!-- onchange="myForm.submit()" -->
+		<span id="prvni_vklad_value"></span>
+	</div>
+	<div class="form-group" >
+	<label>Měsíční příspěvek: </label>
+		<input type="number" name="mesicni_prispevek" id="mesicni_prispevek" min="0" required="required" value="5000"/> <!-- onchange="myForm.submit()" -->
+		<span id="mesicni_prispevek_value"></span>
+	</div>
+	<div class="form-group">
+	<label>Roční úrok (v %): </label>
+		<input type="number" name="urok" id="urok" min="0.01" step="0.01" required="required" value="6" /> <!-- onchange="myForm.submit()" -->
+		<span id="urok_value"></span>
+	</div>
+	<div class="form-group">
+	<label>Počet let: </label>
+		<input type="number" name="pocet_let" id="pocet_let" min="1" step="1" required="required" value="20"/> <!-- onchange="myForm.submit()" -->
+		<span id="pocet_let_value"></span>
+	</div>
+	<div class="form-group">
+	<label>Vstupní poplatek: </label>
+		<input type="number" name="vstupni_poplatek" id="vstupni_poplatek" min="0" required="required" value="0"/> <!-- onchange="myForm.submit()" -->
+		<span id="vstupni_poplatek_value"></span>
+	</div>
+		<div class="form-group">
+	<label>Průběžný poplatek (v %, aplikován na začátku měsíce): </label>
+		<input type="number" name="prubezny_poplatek" id="prubezny_poplatek" step="0.01" value="1" required="required" /> <!-- onchange="myForm.submit()" -->
+		<span id="prubezny_poplatek_value"></span>
+	</div>
+	<div class="form-group">
+		<button id="tlacitko" type="submit" class="btn btn-primary" >Vykreslit graf</button>
+	</div>
+	</form>
+	
+	
+
+	{% if kum_balance %}
+		<div class="canvas" style="min-height: 512px">
+			<canvas id="myChart"></canvas>
+		</div>
+		<div class="form-group">
+			<p><strong>
+				Hodnota Portfolia na konci období: {{"{:,.2f} CZK".format(kum_balance[-1])}}
+			</strong></p>
+			<p><strong>
+				Zisk na úrocích za zvolené období očištěný o poplatky: {{"{:,.2f} CZK".format(kum_balance[-1] - kum_vklady[-1])}}
+			</strong></p>
+			<p><strong>
+				Celkem vloženo peněz za zvolené období: {{"{:,.2f} CZK".format(kum_vklady[-1])}}
+			</strong></p>
+			<p><strong>
+				Celkem zaplaceno na poplatcích: {{"{:,.2f} CZK".format(kum_poplatky[-1])}}
+			</strong></p>
+			<p><strong>
+				Snížení výsledné hodnoty portfolia způsobené placením {{"{:.2%}".format(prubezny_poplatek)}} poplatku za {{pocet_let}} let: {{"{:,.2f} CZK".format(kum_balance[-1] - kum_balance_bez_poplatku[-1])}}
+			</strong></p>
+		</div>
+	{% endif %}
+	
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+	<script type="text/javascript">
+	
+	function setTickers() {
+	if (window.innerWidth < 1920)
+
+		return 24;
+	else
+		return 48;
+	}
+	
+	var numTickers = setTickers();
+	console.log(numTickers);
+	
+	let myChart = document.getElementById('myChart').getContext('2d');
+	let urokyChart = new Chart(myChart, {
+		type:'line', //bar, horizontalBar, pie, line, doughnut, radar, polarArea
+		data:{
+			labels:{{mesice}},
+			datasets:[{
+			label:'Hodnota portfolia',
+			fill: false,
+			backgroundColor: "rgb(0, 153, 51, 0.5)",
+			data:{{kum_balance}}
+			},{
+			label:'Kumulativní hodnota poplatků',
+			fill: false,
+			order: 2,
+			backgroundColor: "rgb(255, 0, 0, 1)",
+			data:{{kum_poplatky}}
+			},{
+			label:'Kumulativní vklady',
+			fill: false,
+			backgroundColor: "rgb(51, 0, 204, 0.6)",
+			data:{{kum_vklady}}
+			},{
+			label:'Hodnota portfolia (pokud by poplatky byly nulové)',
+			fill: false,
+			backgroundColor: "rgb(0, 222, 15, 0.7)",
+			data:{{kum_balance_bez_poplatku}}
+			}
+			
+			]
+		},
+		options: {
+		    scales: {
+			  xAxes: [{
+			        scaleLabel: {
+						display: true,
+						labelString: 'Měsíce'
+								},
+					ticks: {
+					  minRotation: 90,
+					  autoSkip: true,
+					  maxTicksLimit: numTickers,
+							}
+					}]
+					},
+			tooltips:{
+			enabled: true,
+			mode:'label'
+			},
+			legend:{
+			display: true,
+			},
+			responsive: true,
+			maintainAspectRatio: false,
+				}
+	});
+	</script>
+
+ </div>
+
+	<script type="text/javascript">
+	
+	
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('prvni_vklad', document.getElementsByName("prvni_vklad")[0].value);
+		localStorage.setItem('mesicni_prispevek', document.getElementsByName("mesicni_prispevek")[0].value);
+		localStorage.setItem('urok', document.getElementsByName("urok")[0].value);
+		localStorage.setItem('pocet_let', document.getElementsByName("pocet_let")[0].value);
+		localStorage.setItem('vstupni_poplatek', document.getElementsByName("vstupni_poplatek")[0].value);
+		localStorage.setItem('prubezny_poplatek', document.getElementsByName("prubezny_poplatek")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal = localStorage.getItem('prvni_vklad');
+		document.getElementsByName("prvni_vklad")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('mesicni_prispevek');
+		document.getElementsByName("mesicni_prispevek")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('urok');
+		document.getElementsByName("urok")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('pocet_let');
+		document.getElementsByName("pocet_let")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('vstupni_poplatek');
+		document.getElementsByName("vstupni_poplatek")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('prubezny_poplatek');
+		document.getElementsByName("prubezny_poplatek")[0].value = inputVal;
+	}
+
+	</script>
+
+{% endblock content %}

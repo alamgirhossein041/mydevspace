@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+{% block content %}
+	<body>
+
+ <div class="content-section">
+	<h1>Binance API tool</h1>
+
+	<!-- Main Input For Receiving Query to our ML -->
+	<form id="myForm" name="myForm" action="{{ url_for('return_file')}}" method="post" class="form_class" onsubmit="saveData()">
+	<div class="form-group">
+		Ticker(BTCUSDT, ETHBTC apod): 
+		<input type="text" name="ticker" class="form-control" required="required">
+	</div>
+	<div class="form-group" >
+		Datum od:
+		<input type="date" name="timerange_start" class="form-control" required="required">
+	</div>
+	<div class="form-group">
+		Datum do:
+		<input type="date" name="timerange_end" class="form-control" required="required">
+	</div>
+	<div class="form-group">
+	Interval:
+		<select name="interval" class="form-control" required="required">
+			<option value="1h">1h</option>
+			<option value="2h">2h</option>
+			<option value="4h">4h</option>
+			<option value="6h">6h</option>
+			<option value="8h">8h</option>
+			<option value="12h">12h</option>
+			<option value="1d">1d</option>
+			<option value="3d">3d</option>
+			<option value="1w">1w</option>
+			<option value="1M">1M</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Formát:
+		<select name="format" class="form-control" required="required">
+			<option value="excel">Excel</option>
+			<option value="csv">CSV</option>
+		</select>
+	</div>
+	<div class="form-group">
+        <button id="tlacitko" type="submit" class="btn btn-primary" >Generovat soubor</button>
+	</div>
+	</form>
+	
+	<div id="result"  class="alert alert-success" role="alert">
+		{{ form_inputs }}
+		Binance API Error - Ticker pravděpodobně neexistuje.
+	</div>
+
+ </div>
+
+	<script type="text/javascript">
+		
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('ticker', document.getElementsByName("ticker")[0].value);
+		localStorage.setItem('timerange_start', document.getElementsByName("timerange_start")[0].value);
+		localStorage.setItem('timerange_end', document.getElementsByName("timerange_end")[0].value);
+		localStorage.setItem('interval', document.getElementsByName("interval")[0].value);
+		localStorage.setItem('format', document.getElementsByName("format")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal = localStorage.getItem('ticker');
+		document.getElementsByName("ticker")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('timerange_start');
+		document.getElementsByName("timerange_start")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('timerange_end');
+		document.getElementsByName("timerange_end")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('interval');
+		document.getElementsByName("interval")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('format');
+		document.getElementsByName("format")[0].value = inputVal;	
+	}
+		
+	// element which needs to be scrolled to
+	var element = document.querySelector("#result");
+	console.log(element.textContent.trim());
+
+	// scroll to element
+	if (element.textContent.trim() !=="")  {
+		element.scrollIntoView({ block: 'start'});
+	}
+
+
+	</script>
+{% endblock content %}

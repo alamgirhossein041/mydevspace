@@ -1,0 +1,269 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="content-section">
+	<h1>Odhad ceny bytu</h1>
+	<form id="myForm" name="myForm" action="{{ url_for('realty_predict')}}" method="post" class="form_class" onsubmit="saveData()">
+	<div class="form-group">
+		Typ bytu
+		<select name="typBytu" class="form-control" required="required"/>
+			<option value="1+1">1+1</option>
+			<option value="1+kk">1+kk</option>
+			<option value="2+1">2+1</option>
+			<option value="2+kk">2+kk</option>
+			<option value="3+1">3+1</option>
+			<option value="3+kk">3+kk</option>
+			<option value="4+1">4+1</option>
+			<option value="4+kk">4+kk</option>
+			<option value="5+1">5+1</option>
+			<option value="5+kk">5+kk</option>
+			<option value="6 a více">6 a více</option>
+			<option value="Atypický">Atypický</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Stavba
+		<select name="stavba" class="form-control" required="required"/>
+			<option value="Cihlová">Cihlová</option>
+			<option value="Panelová">Panelová</option>
+			<option value="Smíšená">Smíšená</option>
+			<option value="Skeletová">Skeletová</option>
+			<option value="Dřevěná">Dřevěná</option>
+			<option value="Montovaná">Montovaná</option>
+			<option value="Kamenná">Kamenná</option>
+		</select>
+	</div>
+	<div class="form-group">
+	Stav objektu
+		<select name="stavObjektu" class="form-control" required="required"/>
+			<option value="Po rekonstrukci">Po rekonstrukci</option>
+			<option value="Velmi dobrý">Velmi dobrý</option>
+			<option value="Dobrý">Dobrý</option>
+			<option value="Před rekonstrukcí">Před rekonstrukcí</option>
+			<option value="Novostavba">Novostavba</option>
+			<option value="Ve výstavbě">Ve výstavbě</option>
+			<option value="Špatný">Špatný</option>
+		</select>
+	</div>
+	<div class="form-group">
+	Vlastnictví
+		<select name="vlastnictvi" class="form-control" required="required"/>
+			<option value="Osobní">Osobní</option>
+			<option value="Družstevní">Družstevní</option>
+			<option value="Státní/obecní">Státní/obecní</option>
+		</select>
+	</div>
+	<div class="form-group">
+	Topení
+		<select name="topeni" class="form-control" required="required"/>
+			<option value="Ústřední dálkové">Ústřední dálkové</option>
+			<option value="Ústřední plynové">Ústřední plynové</option>
+			<option value="Lokální plynové">Lokální plynové</option>
+			<option value="Lokální elektrické">Lokální elektrické</option>
+			<option value="Ústřední tuhá paliva">Ústřední tuhá paliva</option>
+			<option value="Jiné">Jiné</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Energetická třída
+		<select name="energetickaTrida" class="form-control" required="required"/>
+			<option value="A">A</option>
+			<option value="B">B</option>
+			<option value="C">C</option>
+			<option value="D">D</option>
+			<option value="E">E</option>
+			<option value="F">F</option>
+			<option value="G">G</option>
+			<option value="Jiné">Jiné</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Podlaží
+		<select name="podlazi" class="form-control" required="required"/>
+			<option value="1.0">1</option>
+			<option value="2.0">2</option>
+			<option value="3.0">3</option>
+			<option value="4.0">4</option>
+			<option value="5.0">5</option>
+			<option value="6.0">6</option>
+			<option value="7.0">7</option>
+			<option value="8.0">8</option>
+			<option value="9.0">9</option>
+			<option value="10.0">10</option>
+			<option value="Jiné">Jiné</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Vyhrazené parkování
+		<select id="vyhrazene_parkovani" name="vyhrazene_parkovani" class="form-control" required="required"/>
+			<option value="1">Ano</option>
+			<option value="0">Ne</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<input type="range" name="uzitnaPlocha" id="uzitnaPlocha" min="10" max="500" class="custom-range" required="required"/> 
+		<p>Užitná plocha: <span id="uzitnaPlocha_value"></span></p>
+	</div>
+	<div class="form-group">
+		Včetně provize
+		<select name="vcetneProvize" class="form-control" required="required"/>
+			<option value="1">Ano</option>
+			<option value="0">Ne</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Balkón
+		<select name="balkon" class="form-control" required="required"/>
+			<option value="1">Ano</option>
+			<option value="0">Ne</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Sklep
+		<select id="sklep" name="sklep" class="form-control" required="required"/>
+			<option value="1">Ano</option>
+			<option value="0">Ne</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Lat: <input type="text" name="lat" required="required" class="form-control" readonly/> Long: <input type="text" name="long" required="required" class="form-control" readonly/>
+	</div>
+	<div class="form-group" id="map" height="250"></div>
+	<div class="form-group">
+        <button id="tlacitko" type="submit" class="btn btn-primary" >Predict</button>
+	</div>
+	</form>
+	
+	
+	
+	<div id="result" class="alert alert-success" role="alert">
+		{{ prediction_text }}
+	</div>
+
+	
+	
+	<script>
+	//MAPA
+	// initialize Leaflet
+	
+	var lon_stor = localStorage.getItem('long');
+	var lat_stor = localStorage.getItem('lat');
+	var marker = {};
+	
+	if (lon_stor == undefined  || lat_stor == undefined) {
+		lon_stor = 14.441;
+		lat_stor = 50.057;
+	};
+	
+	var map = L.map('map').setView({lon: lon_stor, lat: lat_stor}, 8);
+	
+	marker = L.marker([lat_stor, lon_stor]).addTo(map);
+
+	// add the OpenStreetMap tiles
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+	}).addTo(map);
+
+	// show the scale bar on the lower left corner
+	L.control.scale().addTo(map);
+
+	map.on('click', function(e) {
+	
+	document.getElementsByName("lat")[0].value = e.latlng.lat;
+	document.getElementsByName("long")[0].value = e.latlng.lng;
+	
+	if (marker != undefined) {
+		map.removeLayer(marker);
+	}
+	
+	marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+	});
+	
+	//HANDLING PROMENNYCH - ukladani a reloadovani do localstorage
+	
+	var slider_plocha = document.getElementById("uzitnaPlocha");
+	var output_plocha = document.getElementById("uzitnaPlocha_value");
+	output_plocha.innerHTML = slider_plocha.value;
+	
+	slider_plocha.oninput = function() {
+	output_plocha.innerHTML = this.value;
+	}
+
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('typBytu', document.getElementsByName("typBytu")[0].value);
+		localStorage.setItem('stavba', document.getElementsByName("stavba")[0].value);
+		localStorage.setItem('stavObjektu', document.getElementsByName("stavObjektu")[0].value);
+		localStorage.setItem('vlastnictvi', document.getElementsByName("vlastnictvi")[0].value);
+		localStorage.setItem('topeni', document.getElementsByName("topeni")[0].value);
+		localStorage.setItem('energetickaTrida', document.getElementsByName("energetickaTrida")[0].value);
+		localStorage.setItem('podlazi', document.getElementsByName("podlazi")[0].value);
+		localStorage.setItem('uzitnaPlocha', document.getElementsByName("uzitnaPlocha")[0].value);
+		localStorage.setItem('vcetneProvize', document.getElementsByName("vcetneProvize")[0].value);
+		localStorage.setItem('balkon', document.getElementsByName("balkon")[0].value);
+		localStorage.setItem('sklep', document.getElementsByName("sklep")[0].value);
+		localStorage.setItem('vyhrazene_parkovani', document.getElementsByName("vyhrazene_parkovani")[0].value);
+		localStorage.setItem('lat', document.getElementsByName("lat")[0].value);
+		localStorage.setItem('long', document.getElementsByName("long")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal = localStorage.getItem('typBytu');
+		document.getElementsByName("typBytu")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('stavba');
+		document.getElementsByName("stavba")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('stavObjektu');
+		document.getElementsByName("stavObjektu")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('vlastnictvi');
+		document.getElementsByName("vlastnictvi")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('topeni');
+		document.getElementsByName("topeni")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('energetickaTrida');
+		document.getElementsByName("energetickaTrida")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('podlazi');
+		document.getElementsByName("podlazi")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('uzitnaPlocha');
+		document.getElementsByName("uzitnaPlocha")[0].value = inputVal;
+		document.getElementById("uzitnaPlocha_value").innerHTML = inputVal;
+
+		var inputVal = localStorage.getItem('vcetneProvize');
+		document.getElementsByName("vcetneProvize")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('balkon');
+		document.getElementsByName("balkon")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('sklep');
+		document.getElementsByName("sklep")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('vyhrazene_parkovani');
+		document.getElementsByName("vyhrazene_parkovani")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('lat');
+		document.getElementsByName("lat")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('long');
+		document.getElementsByName("long")[0].value = inputVal;
+
+	}
+	
+	// element which needs to be scrolled to
+	var element = document.querySelector("#result");
+	console.log(element.textContent.trim());
+
+	// scroll to element
+	if (element.textContent.trim() !=="")  {
+		element.scrollIntoView({ block: 'start'});
+	}
+	</script>
+{% endblock content %}

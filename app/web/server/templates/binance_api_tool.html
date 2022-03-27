@@ -1,0 +1,164 @@
+{% extends 'layout.html' %}
+{% block content %}
+	<body>
+
+ <div class="content-section">
+	<h1>Binance API tool</h1>
+
+	<!-- Main Input For Receiving Query to our ML -->
+	<form id="myForm" name="myForm" action="{{ url_for('binance_api_tool')}}" method="post" class="form_class" onsubmit="saveData();clearcontent('result')">
+	<div class="form-group">
+		Ticker(BTCUSDT, ETHBTC apod): 
+		<input oninput="this.value = this.value.toUpperCase()" type="text" name="ticker" class="form-control" required="required">
+	</div>
+	<div class="form-group" >
+		Datum od:
+		<input type="date" name="timerange_start" class="form-control" required="required">
+	</div>
+	<div class="form-group">
+		Datum do:
+		<input type="date" name="timerange_end" class="form-control" required="required">
+	</div>
+	<div class="form-group">
+	Interval:
+		<select name="interval" class="form-control" required="required">
+			<option value="1h">1h</option>
+			<option value="2h">2h</option>
+			<option value="4h">4h</option>
+			<option value="6h">6h</option>
+			<option value="8h">8h</option>
+			<option value="12h">12h</option>
+			<option value="1d">1d</option>
+			<option value="3d">3d</option>
+			<option value="1w">1w</option>
+			<option value="1M">1M</option>
+		</select>
+	</div>
+	<div class="form-group">
+		Formát:
+		<select name="format" class="form-control" required="required">
+			<option value="excel">Excel</option>
+			<option value="csv">CSV</option>
+		</select>
+	</div>
+	<div class="form-group">
+        <button id="tlacitko" type="submit" class="btn btn-primary" >Generovat soubor</button>
+		<a href="/binance_api_tool" class="btn btn-secondary" style="float: right;">Obnovit stav</a>
+	</div>
+	</form>
+	
+	<div id="result"  class="alert alert-success" role="alert">
+		{{ form_inputs }}
+	</div>
+
+	<div class="container">
+    <div class="row">
+      <div class="col">
+        <h5 class="mt-1 mb-1">Current jobs</h5>
+        {% if current_jobs %}
+        {% for current_job in current_jobs %}
+        <div class="card mb-1">
+          <div class="card-body">
+            <p>Args: {{ current_job.args }}</p>
+            <small class="text-muted d-block">Job ID: {{ current_job.id }}</small>
+			<small class="text-muted d-block">Created at: {{ current_job.created_at.strftime('%a, %d %b %Y %H:%M:%S') }}</small>
+			<small class="text-muted d-block">Job result: {{ current_job.result }}</small>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>Currently processing no jobs - worker is idle.</p>
+        {% endif %}
+      </div>
+    </div>
+    </div>
+	
+	<div class="container">
+    <div class="row">
+      <div class="col">
+        <h5 class="mt-1 mb-1">Results</h5>
+        {% if finished_jobs %}
+        {% for finished_job in finished_jobs %}
+        <div class="card mb-1">
+          <div class="card-body">
+            <p>Args: {{ finished_job.args }}</p>
+            <small class="text-muted d-block">Job ID: {{ finished_job.id }}</small>
+			<small class="text-muted d-block">Created at: {{ finished_job.created_at.strftime('%a, %d %b %Y %H:%M:%S') }}</small>
+			{% if finished_job.result == 'Binance API Error. Pravděpodobně byl zadán špatný Ticker.' %}
+			<small class="text-muted d-block">Job result: Binanace API Error - Pravděpodobně byl zadán špatný ticker. </small>
+			{% else %}
+			<small class="text-muted d-block">Job result: <a href="{{ url_for('static', filename=finished_job.result) }}"> Download</a> </small>
+			{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No recent finished jobs.</p>
+        {% endif %}
+      </div>
+    </div>
+    </div>
+	
+	<div class="container">
+    <div class="row">
+      <div class="col">
+        <h5 class="mt-2 mb-2">Job queue</h5>
+        {% if jobs %}
+        {% for job in jobs %}
+        <div class="card mb-2">
+          <div class="card-body">
+            <h6>{{ job.func_name }}</h6>
+            <p>Args: {{ job.args }}</p>
+            <small class="text-muted d-block">Job ID: {{ job.id }}</small>
+            <small class="text-muted d-block">Status: {{ job.get_status() }}</small>
+            <small class="text-muted d-block">Created at: {{ job.created_at.strftime('%a, %d %b %Y %H:%M:%S') }}</small>
+            <small class="text-muted d-block">Enqueued at: {{ job.enqueued_at.strftime('%a, %d %b %Y %H:%M:%S') }}</small>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No jobs in the queue</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+ </div>
+
+	<script type="text/javascript">
+		
+	//Functions which handle saving form data
+	
+	function saveData(){
+		localStorage.setItem('ticker', document.getElementsByName("ticker")[0].value);
+		localStorage.setItem('timerange_start', document.getElementsByName("timerange_start")[0].value);
+		localStorage.setItem('timerange_end', document.getElementsByName("timerange_end")[0].value);
+		localStorage.setItem('interval', document.getElementsByName("interval")[0].value);
+		localStorage.setItem('format', document.getElementsByName("format")[0].value);
+	}
+	
+	window.addEventListener('load', reloadData);
+	
+	function reloadData(){
+		var inputVal = localStorage.getItem('ticker');
+		document.getElementsByName("ticker")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('timerange_start');
+		document.getElementsByName("timerange_start")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('timerange_end');
+		document.getElementsByName("timerange_end")[0].value = inputVal;
+		
+		var inputVal = localStorage.getItem('interval');
+		document.getElementsByName("interval")[0].value = inputVal;
+
+		var inputVal = localStorage.getItem('format');
+		document.getElementsByName("format")[0].value = inputVal;	
+	}
+	
+	function clearcontent(elementID) { 
+		document.getElementById(elementID).innerHTML = ""; 
+    } 
+
+	</script>
+{% endblock content %}

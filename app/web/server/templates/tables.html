@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="content-section">
+	<h1>Data v tabulce</h1>
+	<div class="media-body">
+		<div class="article-metadata"></div>
+		<p class="article-content">
+			{% for table in tables %}
+						{{ table|safe }}
+			{% endfor %}
+		</p>
+	</div>
+</div>
+
+{% endblock content %}
