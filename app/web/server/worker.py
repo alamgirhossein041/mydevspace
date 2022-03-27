@@ -8,8 +8,8 @@ from stockstats import StockDataFrame
 import pandas as pd
 import os
 
-def date_to_milliseconds(date_str):
 
+def date_to_milliseconds(date_str):
     # get epoch value in UTC
     epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
     # parse our date string
@@ -23,7 +23,6 @@ def date_to_milliseconds(date_str):
 
 
 def interval_to_milliseconds(interval):
-
     ms = None
     seconds_per_unit = {
         "m": 60,
@@ -40,8 +39,8 @@ def interval_to_milliseconds(interval):
             pass
     return ms
 
-def get_historical_klines(symbol, interval, start_str, end_str=None):
 
+def get_historical_klines(symbol, interval, start_str, end_str=None):
     # create the Binance client, no need for api key
     client = Client("", "")
 
@@ -101,19 +100,22 @@ def get_historical_klines(symbol, interval, start_str, end_str=None):
 
     return output_data
 
+
 def uixtoutc(x):
-    return datetime.utcfromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.utcfromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
 
 def getday(x):
-    x = datetime.utcfromtimestamp(x/1000)
+    x = datetime.utcfromtimestamp(x / 1000)
     return x.day
+
 
 def process_klines(klines):
     df = pd.DataFrame(klines)
     df.columns = ['open_time',
-                             'o', 'h', 'l', 'c', 'v',
-                             'close_time', 'qav', 'num_trades',
-                             'taker_base_vol', 'taker_quote_vol', 'ignore']
+                  'o', 'h', 'l', 'c', 'v',
+                  'close_time', 'qav', 'num_trades',
+                  'taker_base_vol', 'taker_quote_vol', 'ignore']
     df['o'] = df['o'].astype(float)
     df['h'] = df['h'].astype(float)
     df['l'] = df['l'].astype(float)
@@ -121,39 +123,40 @@ def process_klines(klines):
     df['v'] = df['v'].astype(float)
     df['qav'] = df['qav'].astype(float)
     df['taker_base_vol'] = df['taker_base_vol'].astype(float)
-    
+
     df = df.fillna(0)
     return df
 
-def return_file(inputs, tgt_dir):
 
+def return_file(inputs, tgt_dir):
     dir_to_return = '/cryptodata/'
-    
+
     X = inputs
     print('Inputs: ' + str(X))
-    
+
     symbol = str(X[0])
     start = str(X[1])
-    end =  str(X[2])
+    end = str(X[2])
     interval = str(X[3])
     file_format = str(X[4])
-    
+
     try:
         klines = get_historical_klines(symbol, interval, start, end)
         klines_ok = True
     except:
         klines_ok = False
-        #return render_template('binance_api_tool.html', form_inputs='Binance API Error. Pravděpodobně byl zadán špatný Ticker.')
+        # return render_template('binance_api_tool.html', form_inputs='Binance API Error. Pravděpodobně byl zadán špatný Ticker.')
         return ('Binance API Error. Pravděpodobně byl zadán špatný Ticker.')
-    
+
     if klines_ok:
         df = process_klines(klines)
-        df['d'] = df['open_time'].apply(getday)    
+        df['d'] = df['open_time'].apply(getday)
         df['open_time'] = df['open_time'].apply(uixtoutc)
         df['close_time'] = df['close_time'].apply(uixtoutc)
-        
-        stock = df.rename(columns={'o':'open', 'c' : 'close', 'h' : 'high', 'l' : 'low', 'v' : 'volume', 'num_trades' : 'amount'})
-        
+
+        stock = df.rename(
+            columns={'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 'v': 'volume', 'num_trades': 'amount'})
+
         stock = StockDataFrame.retype(stock)
         stock['macd'] = stock.get('macd')
         stock['rsi_12'] = stock.get('rsi_12')
@@ -161,20 +164,20 @@ def return_file(inputs, tgt_dir):
         stock['dma'] = stock.get('dma')
         stock['open_2_sma'] = stock.get('open_2_sma')
         stock['macds'] = stock.get('macds')
-        
-        header_list = ['close_time','open', 'close', 'high', 'low', 'volume', 'amount', 'macd', 'rsi_12', 'volume_delta', 'dma', 'open_2_sma', 'macds', 'close_10_sma', 'close_50_sma']
-        stock = stock.reindex(columns = header_list) 
+
+        header_list = ['close_time', 'open', 'close', 'high', 'low', 'volume', 'amount', 'macd', 'rsi_12',
+                       'volume_delta', 'dma', 'open_2_sma', 'macds', 'close_10_sma', 'close_50_sma']
+        stock = stock.reindex(columns=header_list)
         stock = stock.fillna(0)
-        
+
         if file_format == 'csv':
             filename_ = symbol + '_' + interval + '_' + start + '_' + end + '.csv'
-            stock.to_csv(os.path.join(tgt_dir, filename_), index = False)
+            stock.to_csv(os.path.join(tgt_dir, filename_), index=False)
             print(f'CSV saved to: {tgt_dir}')
-            
+
         elif file_format == 'excel':
             filename_ = symbol + '_' + interval + '_' + start + '_' + end + '.xlsx'
-            stock.to_excel(os.path.join(tgt_dir, filename_), index = False)
+            stock.to_excel(os.path.join(tgt_dir, filename_), index=False)
             print(f'CSV saved to: {tgt_dir}')
-        
+
         return (os.path.join(dir_to_return, filename_))
-    
