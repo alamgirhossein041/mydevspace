@@ -2,9 +2,8 @@ FROM python:3.9.11-bullseye
 
 COPY requirements.txt ./
 RUN apt update
-RUN apt install -y libmariadb-dev cron nano dos2unix
+RUN apt install -y libmariadb-dev cron nano dos2unix gfortran libopenblas-dev liblapack-dev
 RUN pip install --upgrade pip
-RUN apt install gfortran libopenblas-dev liblapack-dev
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY /system/app/ /app/

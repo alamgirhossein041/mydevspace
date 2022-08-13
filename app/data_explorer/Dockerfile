@@ -11,7 +11,8 @@ COPY . /app
 WORKDIR /app
 
 # Install from the requirements.txt we copied above
-RUN apt install -y libmariadb-dev
+RUN apt update
+RUN apt install -y make automake gcc g++ subversion python3-dev
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
