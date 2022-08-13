@@ -1,9 +1,9 @@
-version: '3'
+version: '2.4'
 
 services:
       webserver:
         build: ./web
-        image: master-image
+        image: master
         ports:
           - 80:5000
         command: bash -c "cd server && gunicorn --workers 4 --bind 0.0.0.0:5000 --timeout 120 app:app"
@@ -14,9 +14,15 @@ services:
         volumes:
             - static-content:/app/server/static
             - misc-files:/app/server/misc_files
+            
+      data_explorer:
+        build: ./data_explorer
+        ports:
+          - 8501:8501
+        command: streamlit run
 
       worker:
-        image: master-image
+        image: master
         depends_on:
           - redis
         command: bash -c "cd server && rq worker --name worker --url redis://redis:6379/0"
@@ -24,7 +30,7 @@ services:
             - static-content:/app/server/static
 
       dashboard:
-        image: master-image
+        image: master
         ports:
           - 5555:5555
         depends_on:

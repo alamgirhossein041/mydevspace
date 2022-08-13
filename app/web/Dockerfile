@@ -13,6 +13,7 @@ WORKDIR /app
 # Install from the requirements.txt we copied above
 RUN apt install -y libmariadb-dev
 RUN pip install --upgrade pip
+RUN apt install gfortran libopenblas-dev liblapack-dev
 RUN pip install -r requirements.txt
 RUN pip install git+https://github.com/jace/rq-dashboard.git@master
 
