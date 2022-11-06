@@ -14,6 +14,7 @@ services:
         volumes:
             - static-content:/app/server/static
             - misc-files:/app/server/misc_files
+        container_name: webserver
             
       data_explorer:
         build: ./data_explorer
