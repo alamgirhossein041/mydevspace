@@ -1,4 +1,4 @@
-FROM python:3.9.11-bullseye
+FROM python:3.9.11-slim
 
 COPY requirements.txt ./
 RUN apt update
